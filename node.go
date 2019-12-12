@@ -1,6 +1,8 @@
 package avl
 
-import "bytes"
+import (
+	"bytes"
+)
 
 var (
 	InvalidNodeError = NewWrapError("invalid node")
@@ -23,7 +25,7 @@ type MutableNode interface {
 	Merge(source MutableNode) error
 }
 
-func IsEqualKey(a, b []byte) bool {
+func EqualKey(a, b []byte) bool {
 	return bytes.Equal(a, b)
 }
 
@@ -37,16 +39,16 @@ func IsValidNode(node, left, right Node) error {
 		return InvalidNodeError.Wrapf("key is empty")
 	}
 
-	// key of children correctness
+	// key of leaf correctness
 	if left != nil && CompareKey(left.Key(), node.Key()) >= 0 {
 		return InvalidNodeError.Wrapf(
-			"left is greater: left=%v > node=%v",
+			"left must be lesser: left=%v > node=%v",
 			left.Key(), node.Key(),
 		)
 	}
 	if right != nil && CompareKey(right.Key(), node.Key()) <= 0 {
 		return InvalidNodeError.Wrapf(
-			"right is lesser: right=%v > node=%v",
+			"right must be greater: right=%v > node=%v",
 			right.Key(), node.Key(),
 		)
 	}
@@ -54,7 +56,7 @@ func IsValidNode(node, left, right Node) error {
 	// check height
 	if left == nil && right == nil {
 		if node.Height() != 0 {
-			return InvalidNodeError.Wrapf("height must be 0 without children; height=%d", node.Height())
+			return InvalidNodeError.Wrapf("height must be 0 without leaf; height=%d", node.Height())
 		}
 	} else if isLeft, violated := isSiblingNodesViolated(left, right); violated {
 		return InvalidNodeError.Wrapf("left or right leaf is violated; isLeft=%v", isLeft)
@@ -70,7 +72,7 @@ func IsValidNode(node, left, right Node) error {
 
 		if node.Height() != baseHeight+1 {
 			return InvalidNodeError.Wrapf(
-				"height must be +1 by children; left_or_right=%d height=%d",
+				"height must be +1 by leaf; left_or_right=%d height=%d",
 				baseHeight, node.Height(),
 			)
 		}
@@ -79,7 +81,7 @@ func IsValidNode(node, left, right Node) error {
 	return nil
 }
 
-func isSiblingNodesViolated(a, b Node) (bool /* left(true) or right(false) violated */, bool /* violated */) {
+func isSiblingNodesViolated(a, b Node) (bool /* left(true), right(false) */, bool /* violated */) {
 	if a == nil && b == nil {
 		return false, false
 	} else if a == nil || b == nil {

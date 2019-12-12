@@ -52,7 +52,7 @@ func (tg *TreeGenerator) Add(node MutableNode) ([]MutableNode /* parents node */
 		tg.nodes[string(node.Key())] = node
 
 		return nil, nil
-	} else if IsEqualKey(tg.root.Key(), node.Key()) {
+	} else if EqualKey(tg.root.Key(), node.Key()) {
 		log_.Debug().Msg("same with root; root overrided")
 
 		if err := tg.root.Merge(node); err != nil {
@@ -62,11 +62,16 @@ func (tg *TreeGenerator) Add(node MutableNode) ([]MutableNode /* parents node */
 		return nil, nil
 	}
 
+	parents, err := tg.add(node)
+	if err != nil {
+		return nil, err
+	}
+
 	if _, found := tg.nodes[string(node.Key())]; !found {
 		tg.nodes[string(node.Key())] = node
 	}
 
-	return tg.add(node)
+	return parents, nil
 }
 
 func (tg *TreeGenerator) add(node MutableNode) ([]MutableNode /* parents node */, error) {

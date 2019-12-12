@@ -5,7 +5,7 @@ import (
 )
 
 var (
-	NodeNotFoundInPoolError = NewWrapError("not not found in pool")
+	NodeNotFoundInPoolError = NewWrapError("node not found in pool")
 )
 
 type NodeTraverseFunc func(Node) (bool, error)

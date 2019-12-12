@@ -46,6 +46,7 @@ func (tv TreeValidator) hasOrphans() (bool, error) {
 		if err != nil {
 			return false, err
 		} else if n == nil {
+			log.Debug().Bytes("key", node.Key()).Msg("orphan found")
 			found = true
 			return false, nil
 		}
