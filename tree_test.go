@@ -308,22 +308,7 @@ func (t *testTree) TestShape() {
 		t.Run(
 			c.name,
 			func() {
-				np := NewMapNodePool()
-				for k, v := range c.shape {
-					node := newExampleNode(k)
-					node.height = v.height
-
-					if v.left > 0 {
-						node.left = nodeIntKey(v.left)
-					}
-					if v.right > 0 {
-						node.right = nodeIntKey(v.right)
-					}
-
-					_ = np.Set(node)
-				}
-
-				tr, err := NewTree(nodeIntKey(c.root), np)
+				tr, err := t.treeFromShape(c.root, c.shape)
 				t.NoError(err, "case %d: NewTree failed", i)
 				if err != nil {
 					return
@@ -333,6 +318,92 @@ func (t *testTree) TestShape() {
 				t.NoError(tr.IsValid(), "case %d: IsValid() failed", i)
 			},
 		)
+	}
+}
+
+func (t *testTree) treeFromShape(root int, shape map[int]shape) (*Tree, error) {
+	np := NewMapNodePool()
+	for k, v := range shape {
+		node := newExampleNode(k)
+		node.height = v.height
+
+		if v.left > 0 {
+			node.left = nodeIntKey(v.left)
+		}
+		if v.right > 0 {
+			node.right = nodeIntKey(v.right)
+		}
+
+		_ = np.Set(node)
+	}
+
+	return NewTree(nodeIntKey(root), np)
+}
+
+func (t *testTree) TestGet() {
+	shape := map[int]shape{
+		100: {height: 3, left: 50, right: 150},
+		50:  {height: 1, left: 30, right: 70},
+		150: {height: 2, left: 130, right: 180},
+		30:  {height: 0},
+		70:  {height: 0},
+		130: {height: 0},
+		170: {height: 0},
+		180: {height: 1, left: 170, right: 200},
+		200: {height: 0},
+	}
+
+	tr, err := t.treeFromShape(100, shape)
+	t.NoError(err)
+	_ = tr.SetLogger(log)
+
+	for k, _ := range shape {
+		key := nodeIntKey(k)
+		g, err := tr.Get(key)
+		t.NoError(err)
+		t.NotNil(g)
+	}
+}
+
+func (t *testTree) TestGetWithParents() {
+	shape := map[int]shape{
+		100: {height: 3, left: 50, right: 150},
+		50:  {height: 1, left: 30, right: 70},
+		150: {height: 2, left: 130, right: 180},
+		30:  {height: 0},
+		70:  {height: 0},
+		130: {height: 0},
+		170: {height: 0},
+		180: {height: 1, left: 170, right: 200},
+		200: {height: 0},
+	}
+
+	parents := map[int][]int{
+		100: {},
+		50:  {100},
+		150: {100},
+		30:  {100, 50},
+		70:  {100, 50},
+		130: {100, 150},
+		170: {100, 150, 180},
+		180: {100, 150},
+		200: {100, 150, 180},
+	}
+
+	tr, err := t.treeFromShape(100, shape)
+	t.NoError(err)
+	_ = tr.SetLogger(log)
+
+	for k, ps := range parents {
+		key := nodeIntKey(k)
+		n, parents, err := tr.GetWithParents(key)
+		t.NoError(err, "GetWithParents failed: %v", k)
+		t.Equal(key, n.Key(), "key not match: %v", k)
+		t.Equal(len(ps), len(parents), "parents length not equal: %v; ps=%v parents=%v", k, ps, parents)
+
+		for i := 0; i < len(ps); i++ {
+			t.Equal(ps[i], parseNodeIntKey(parents[i].Key()))
+		}
 	}
 }
 
