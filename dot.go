@@ -7,7 +7,7 @@ import (
 )
 
 func printDotGraphNode(w io.Writer, tr *Tree, node Node) {
-	fmt.Fprintf(w, `  %s [label="%s (%d)"];
+	fmt.Fprintf(w, `  "%s" [label="%s (%d)"];
 `,
 		string(node.Key()),
 		string(node.Key()),
@@ -17,10 +17,10 @@ func printDotGraphNode(w io.Writer, tr *Tree, node Node) {
 	if node.LeftKey() == nil && node.RightKey() == nil {
 		fmt.Fprintf(
 			w,
-			`  %s [label=" " style="filled" color="white" bgcolor="white"];
-  %s -- %s [style="solid" color="white" bgcolor="white"];
-  %s [label=" " style="filled" color="white" bgcolor="white"];
-  %s -- %s [style="solid" color="white" bgcolor="white"];
+			`  "%s" [label=" " style="filled" color="white" bgcolor="white"];
+  "%s" -- "%s" [style="solid" color="white" bgcolor="white"];
+  "%s" [label=" " style="filled" color="white" bgcolor="white"];
+  "%s" -- "%s" [style="solid" color="white" bgcolor="white"];
 `,
 			string(node.Key())+"0",
 			string(node.Key()),
@@ -36,7 +36,8 @@ func printDotGraphNode(w io.Writer, tr *Tree, node Node) {
 	if node.LeftKey() != nil {
 		fmt.Fprintf(
 			w,
-			"  %s -- %s;\n",
+			`  "%s" -- "%s";
+`,
 			string(node.Key()),
 			string(node.LeftKey()),
 		)
@@ -44,8 +45,8 @@ func printDotGraphNode(w io.Writer, tr *Tree, node Node) {
 		if node.RightKey() == nil {
 			fmt.Fprintf(
 				w,
-				`  %s [label=" " style="filled" color="white" bgcolor="white"];
-  %s -- %s [style="solid" color="white" bgcolor="white"];
+				`  "%s" [label=" " style="filled" color="white" bgcolor="white"];
+  "%s" -- "%s" [style="solid" color="white" bgcolor="white"];
 `,
 				string(node.Key())+"0",
 				string(node.Key()),
@@ -61,8 +62,8 @@ func printDotGraphNode(w io.Writer, tr *Tree, node Node) {
 		if node.LeftKey() == nil {
 			fmt.Fprintf(
 				w,
-				`  %s [label=" " style="filled" color="white" bgcolor="white"];
-  %s -- %s [style="solid" color="white" bgcolor="white"];
+				`  "%s" [label=" " style="filled" color="white" bgcolor="white"];
+  "%s" -- "%s" [style="solid" color="white" bgcolor="white"];
 `,
 				string(node.Key())+"1",
 				string(node.Key()),
@@ -72,7 +73,8 @@ func printDotGraphNode(w io.Writer, tr *Tree, node Node) {
 
 		fmt.Fprintf(
 			w,
-			"  %s -- %s;\n",
+			`  "%s" -- "%s";"
+`,
 			string(node.Key()),
 			string(node.RightKey()),
 		)
