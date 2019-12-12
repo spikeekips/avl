@@ -1,6 +1,9 @@
 package avl
 
-import "github.com/rs/zerolog"
+import (
+	"github.com/rs/zerolog"
+	"golang.org/x/xerrors"
+)
 
 var (
 	FailedToAddNodeInTreeError = NewWrapError("failed to add node to TreeGenerator")
@@ -30,6 +33,10 @@ func (tg *TreeGenerator) Nodes() map[string]MutableNode {
 }
 
 func (tg *TreeGenerator) Tree() (*Tree, error) {
+	if tg.root == nil {
+		return nil, xerrors.Errorf("empty tree")
+	}
+
 	return NewTree(tg.root.Key(), NodePoolFromMutableNodeMap(tg.nodes))
 }
 

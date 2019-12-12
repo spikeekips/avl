@@ -16,7 +16,32 @@ $ go clean -testcache; go test -race -v ./ -run ..
 
 > You can set the environment variable, `AVL_DEBUG=1` for enabling debug mode.
 
-## Benchmark
+## `avl2dot`
+
+`avl2dot` is simple utility to generate dot graph from `TreeGenerator`. You can install `avl2dot`.
+
+```sh
+$ go get github.com/spikeekips/avl/cmd/avl2dot
+```
+
+You can pass the nodes keys to avl2dot, it will print dot graph.
+```sh
+$ avl2dot my name is spike ekips i am developer
+```
+
+![avl2dot-example-08bb.png](https://user-images.githubusercontent.com/174565/70696864-6e689b00-1cbc-11ea-90da-4d030a8ba2ad.png)
+
+> The nodes key can be passed by standard input.
+
+## Performance
+
+### Elapsed Time By Number Of Nodes
+
+![TreeGenerator-elapsedtime Plot](https://user-images.githubusercontent.com/174565/70695519-cfdb3a80-1cb9-11ea-9885-59f2b3012a72.png)
+
+> Estimated by `avl2dot` at 08bbcafe2359356bf0da02a1177635855f66de8d .
+
+### golang Benchmark
 
 ```sh
 $ go clean -testcache; go test -race -v -run _ -bench BenchmarkTreeGenerator ./

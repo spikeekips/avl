@@ -98,7 +98,6 @@ type ExampleNode struct {
 	height int16
 	left   []byte
 	right  []byte
-	value  int
 }
 
 func (em *ExampleNode) Key() []byte {

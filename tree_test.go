@@ -357,7 +357,7 @@ func (t *testTree) TestGet() {
 	t.NoError(err)
 	_ = tr.SetLogger(log)
 
-	for k, _ := range shape {
+	for k := range shape {
 		key := nodeIntKey(k)
 		g, err := tr.Get(key)
 		t.NoError(err)
@@ -442,9 +442,9 @@ func newExampleMutableNode(i int) *ExampleMutableNode {
 	return &ExampleMutableNode{key: nodeIntKey(i)}
 }
 
-var printCount int32
+var printCount int32 // nolint
 
-func printTree(tg *TreeGenerator, verbose bool) error {
+func printTree(tg *TreeGenerator, verbose bool) error { // nolint
 	defer atomic.AddInt32(&printCount, 1)
 
 	var b bytes.Buffer

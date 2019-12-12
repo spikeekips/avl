@@ -73,7 +73,7 @@ func printDotGraphNode(w io.Writer, tr *Tree, node Node) {
 
 		fmt.Fprintf(
 			w,
-			`  "%s" -- "%s";"
+			`  "%s" -- "%s";
 `,
 			string(node.Key()),
 			string(node.RightKey()),
