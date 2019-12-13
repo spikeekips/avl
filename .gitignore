@@ -1,0 +1,15 @@
+*.dylib
+*.orig
+*.out
+*.retry
+*.so
+*.test
+*tmp
+.*.sw?
+.DS_Store
+.sw?
+/db
+/vendor/
+tests/*/*/coverage/
+tmp*
+*.test
