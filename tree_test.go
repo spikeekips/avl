@@ -322,7 +322,7 @@ func (t *testTree) TestShape() {
 }
 
 func (t *testTree) treeFromShape(root int, shape map[int]shape) (*Tree, error) {
-	np := NewMapNodePool()
+	np := NewMapNodePool(nil)
 	for k, v := range shape {
 		node := newExampleNode(k)
 		node.height = v.height

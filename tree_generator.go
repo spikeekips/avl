@@ -37,7 +37,7 @@ func (tg *TreeGenerator) Tree() (*Tree, error) {
 		return nil, xerrors.Errorf("empty tree")
 	}
 
-	return NewTree(tg.root.Key(), NodePoolFromMutableNodeMap(tg.nodes))
+	return NewTree(tg.root.Key(), NewMapMutableNodePool(tg.nodes))
 }
 
 func (tg *TreeGenerator) Add(node MutableNode) ([]MutableNode /* parents node */, error) {

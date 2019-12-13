@@ -13,11 +13,15 @@ type NodePool interface {
 }
 
 type SyncMapNodePool struct {
-	m sync.Map
+	m *sync.Map
 }
 
-func NewSyncMapNodePool() *SyncMapNodePool {
-	return &SyncMapNodePool{m: sync.Map{}}
+func NewSyncMapNodePool(m *sync.Map) *SyncMapNodePool {
+	if m == nil {
+		m = &sync.Map{}
+	}
+
+	return &SyncMapNodePool{m: m}
 }
 
 func (mn *SyncMapNodePool) Get(key []byte) (Node, error) {
@@ -59,8 +63,12 @@ type MapNodePool struct {
 	m map[string]Node
 }
 
-func NewMapNodePool() *MapNodePool {
-	return &MapNodePool{m: map[string]Node{}}
+func NewMapNodePool(m map[string]Node) *MapNodePool {
+	if m == nil {
+		m = map[string]Node{}
+	}
+
+	return &MapNodePool{m: m}
 }
 
 func (mn *MapNodePool) Get(key []byte) (Node, error) {
@@ -90,11 +98,46 @@ func (mn *MapNodePool) Traverse(f NodeTraverseFunc) error {
 	return nil
 }
 
-func NodePoolFromMutableNodeMap(nodes map[string]MutableNode) NodePool {
-	m := map[string]Node{}
-	for _, n := range nodes {
-		m[string(n.Key())] = n.(Node)
+type MapMutableNodePool struct {
+	m map[string]MutableNode
+}
+
+func NewMapMutableNodePool(m map[string]MutableNode) *MapMutableNodePool {
+	if m == nil {
+		m = map[string]MutableNode{}
 	}
 
-	return &MapNodePool{m: m}
+	return &MapMutableNodePool{m: m}
+}
+
+func (mn *MapMutableNodePool) Get(key []byte) (Node, error) {
+	node, found := mn.m[string(key)]
+	if !found {
+		return nil, nil
+	}
+
+	return node, nil
+}
+
+func (mn *MapMutableNodePool) Set(node Node) error {
+	n, ok := node.(MutableNode)
+	if !ok {
+		return xerrors.Errorf("not MutableNode; %T", node)
+	}
+
+	mn.m[string(node.Key())] = n
+
+	return nil
+}
+
+func (mn *MapMutableNodePool) Traverse(f NodeTraverseFunc) error {
+	for _, node := range mn.m {
+		if keep, err := f(node); err != nil {
+			return err
+		} else if !keep {
+			break
+		}
+	}
+
+	return nil
 }
