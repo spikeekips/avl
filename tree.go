@@ -130,40 +130,46 @@ func (tr *Tree) Traverse(f NodeTraverseFunc) error {
 		return nil
 	}
 
-	err, _ := tr.traverse(tr.root, f)
+	_, err := tr.traverse(tr.root, f)
 	return err
 }
 
-func (tr *Tree) traverse(node Node, f NodeTraverseFunc) (error, bool) {
+func (tr *Tree) traverse(node Node, f NodeTraverseFunc) (bool, error) {
 	if node == nil {
-		return nil, true
+		return true, nil
 	}
 
-	if keep, err := f(node); !keep || err != nil {
-		return err, false
+	if keep, err := f(node); err != nil {
+		return false, err
+	} else if !keep {
+		return true, nil
 	}
 
 	var left, right Node
 	var err error
 	if left, err = tr.getLeaf(node, true); err != nil {
-		return err, false
+		return false, err
 	}
 	if right, err = tr.getLeaf(node, false); err != nil {
-		return err, false
+		return false, err
 	}
 
 	if left != nil {
-		if err, keep := tr.traverse(left, f); err != nil || !keep {
-			return err, keep
+		if keep, err := tr.traverse(left, f); err != nil {
+			return false, err
+		} else if !keep {
+			return true, nil
 		}
 	}
 	if right != nil {
-		if err, keep := tr.traverse(right, f); err != nil || !keep {
-			return err, keep
+		if keep, err := tr.traverse(right, f); err != nil {
+			return false, err
+		} else if !keep {
+			return true, nil
 		}
 	}
 
-	return nil, true
+	return true, nil
 }
 
 func (tr *Tree) IsValid() error {
