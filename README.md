@@ -74,4 +74,4 @@ BenchmarkTree10000-8   	       5	 235527047 ns/op
 ## TODO
 
 * [ ] Code Documentation with examples
-* [ ] Proof support for hashable node
+* [x] Proof support for hashable node
