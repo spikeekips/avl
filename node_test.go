@@ -201,7 +201,7 @@ func (t *testNodeFuncs) TestIsValidNode() {
 			node: &ExampleMutableNode{key: b("showme")},
 		},
 		{
-			name:   "1 height without leafs",
+			name:   "1 height without leaves",
 			node:   &ExampleMutableNode{key: b("showme"), height: 1},
 			result: "height must be 0",
 		},

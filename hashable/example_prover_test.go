@@ -125,7 +125,7 @@ func (ep ExampleProver) Prove(proof Proof, rootHash []byte) error {
 	for _, p := range pr.parents {
 		if !bytes.Equal(leaf.hash, p.leftHash) && !bytes.Equal(leaf.hash, p.rightHash) {
 			return InvalidProofError.Wrapf(
-				"node hash not match with leafs of 1st parents: leaf.hash=%v != (parents.leftHash=%v, parent.rightHash=%v)",
+				"node hash not match with leaves of 1st parents: leaf.hash=%v != (parents.leftHash=%v, parent.rightHash=%v)",
 				pr.node.hash,
 				p.leftHash,
 				p.rightHash,

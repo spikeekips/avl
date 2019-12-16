@@ -20,11 +20,18 @@ type Node interface {
 // MutableNode is, the name said, is mutable node.Mainly it is used for TreeGenerator.
 type MutableNode interface {
 	Node
+	// SetHeight set height.
 	SetHeight(int16) error
+	// Left() returns the MutableNode of left leaf.
 	Left() MutableNode
+	// Right() returns the MutableNode of right leaf.
 	Right() MutableNode
+	// SetLeft() replaces left leaf.
 	SetLeft(MutableNode) error
+	// SetRight() replaces right leaf.
 	SetRight(MutableNode) error
+	// Merge() merges source node. The basic properties(key, height, left right
+	// key) will not be merged.
 	Merge(source MutableNode) error
 }
 
