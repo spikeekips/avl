@@ -134,41 +134,9 @@ func (tg *TreeGenerator) add(node MutableNode) ([]MutableNode /* parents node */
 		}
 	}
 
-	var head, violated MutableNode
-	var violatedLeft bool
-	for i := len(parents) - 2; i > -1; i-- {
-		// NOTE last parent already has correct height
-		p := parents[i]
-
-		if isLeft, v := isSiblingNodesViolated(p.Left(), p.Right()); v {
-			violated = p
-			violatedLeft = isLeft
-
-			var head_key []byte
-			if i > 0 {
-				head = parents[i-1]
-				head_key = head.Key()
-			}
-
-			log_.Debug().
-				Bytes("head_key", head_key).
-				Bytes("violated_key", violated.Key()).
-				Msg("violated found")
-
-			break
-		}
-
-		if log_.GetLevel() == zerolog.DebugLevel {
-			after_height, _ := tg.resetNodeHeight(p, true)
-			log_.Debug().
-				Bytes("parent_key", p.Key()).
-				Int16("before_height", p.Height()).
-				Int16("after_height", after_height).
-				Msg("reset height of parent")
-		}
-		if _, err := tg.resetNodeHeight(p, false); err != nil {
-			return nil, err
-		}
+	head, violated, violatedLeft, err := tg.resetParentsHeight(node, parents)
+	if err != nil {
+		return nil, err
 	}
 
 	if violated == nil {
@@ -189,7 +157,7 @@ func (tg *TreeGenerator) add(node MutableNode) ([]MutableNode /* parents node */
 	}
 
 	// different side(left-right or right-left)
-	return parents, tg.leftRightRotation(head, violated, node, violatedLeft)
+	return parents, tg.curvedRotation(head, violated, node, violatedLeft)
 }
 
 func (tg *TreeGenerator) getLeaf(node MutableNode, isLeft bool) MutableNode {
@@ -314,14 +282,8 @@ func (tg *TreeGenerator) singleRotation(head, p2, p1, node MutableNode) error {
 
 	var top MutableNode
 	if isLeft == (CompareKey(node.Key(), p1.Key()) < 0) {
-		if isLeft {
-			if err := p2.SetLeft(nil); err != nil {
-				return err
-			}
-		} else {
-			if err := p2.SetRight(nil); err != nil {
-				return err
-			}
+		if err := tg.setLeaf(p2, nil, isLeft); err != nil {
+			return err
 		}
 		if _, err := tg.resetNodeHeight(p2, false); err != nil {
 			return err
@@ -425,7 +387,7 @@ func (tg *TreeGenerator) leftLeftRotation(head, violated, node MutableNode, isLe
 	return tg.setLeaf(head, p2, CompareKey(p3.Key(), head.Key()) < 0)
 }
 
-func (tg *TreeGenerator) leftRightRotation(head, violated, node MutableNode, isLeft bool) error {
+func (tg *TreeGenerator) curvedRotation(head, violated, node MutableNode, isLeft bool) error {
 	log_ := tg.Log().With().
 		Bytes("key", node.Key()).
 		Logger()
@@ -474,32 +436,39 @@ func (tg *TreeGenerator) leftRightRotation(head, violated, node MutableNode, isL
 	}
 	n1 := tg.getLeaf(p1, !leafLeft)
 
-	if isLeft != leafLeft {
-		if err := tg.setLeaf(p2, n1, !isLeft); err != nil {
-			return err
-		}
-		if _, err := tg.resetNodeHeight(p2, false); err != nil {
-			return err
-		}
-		if err := tg.setLeaf(p3, n0, isLeft); err != nil {
-			return err
-		}
-		if _, err := tg.resetNodeHeight(p3, false); err != nil {
-			return err
-		}
+	if err := tg.setLeavesfOfCurvedRotation(p1, p2, p3, n0, n1, isLeft, isLeft == leafLeft); err != nil {
+		return err
+	}
+
+	if head == nil {
+		tg.root = p1
+		return nil
+	}
+
+	return tg.setLeaf(head, p1, CompareKey(p3.Key(), head.Key()) < 0)
+}
+
+func (tg *TreeGenerator) setLeavesfOfCurvedRotation(p1, p2, p3, leaf0, leaf1 MutableNode, isLeft, leafLeft bool) error {
+	var n0, n1 MutableNode
+	if leafLeft {
+		n0 = leaf0
+		n1 = leaf1
 	} else {
-		if err := tg.setLeaf(p3, n1, isLeft); err != nil {
-			return err
-		}
-		if _, err := tg.resetNodeHeight(p3, false); err != nil {
-			return err
-		}
-		if err := tg.setLeaf(p2, n0, !isLeft); err != nil {
-			return err
-		}
-		if _, err := tg.resetNodeHeight(p2, false); err != nil {
-			return err
-		}
+		n0 = leaf1
+		n1 = leaf0
+	}
+
+	if err := tg.setLeaf(p2, n0, !isLeft); err != nil {
+		return err
+	}
+	if err := tg.setLeaf(p3, n1, isLeft); err != nil {
+		return err
+	}
+	if _, err := tg.resetNodeHeight(p2, false); err != nil {
+		return err
+	}
+	if _, err := tg.resetNodeHeight(p3, false); err != nil {
+		return err
 	}
 
 	if err := tg.setLeaf(p1, p2, isLeft); err != nil {
@@ -512,10 +481,50 @@ func (tg *TreeGenerator) leftRightRotation(head, violated, node MutableNode, isL
 		return err
 	}
 
-	if head == nil {
-		tg.root = p1
-		return nil
+	return nil
+}
+
+func (tg *TreeGenerator) resetParentsHeight(node MutableNode, parents []MutableNode) (
+	MutableNode, MutableNode, bool, error,
+) {
+	log_ := tg.Log().With().Bytes("key", node.Key()).Logger()
+
+	var head, violated MutableNode
+	var violatedLeft bool
+	for i := len(parents) - 2; i > -1; i-- {
+		// NOTE last parent already has correct height
+		p := parents[i]
+
+		if isLeft, isViolated := isSiblingNodesViolated(p.Left(), p.Right()); isViolated {
+			violated = p
+			violatedLeft = isLeft
+
+			var head_key []byte
+			if i > 0 {
+				head = parents[i-1]
+				head_key = head.Key()
+			}
+
+			log_.Debug().
+				Bytes("head_key", head_key).
+				Bytes("violated_key", violated.Key()).
+				Msg("violated found")
+
+			break
+		}
+
+		if log_.GetLevel() == zerolog.DebugLevel {
+			after_height, _ := tg.resetNodeHeight(p, true)
+			log_.Debug().
+				Bytes("parent_key", p.Key()).
+				Int16("before_height", p.Height()).
+				Int16("after_height", after_height).
+				Msg("reset height of parent")
+		}
+		if _, err := tg.resetNodeHeight(p, false); err != nil {
+			return nil, nil, false, err
+		}
 	}
 
-	return tg.setLeaf(head, p1, CompareKey(p3.Key(), head.Key()) < 0)
+	return head, violated, violatedLeft, nil
 }
