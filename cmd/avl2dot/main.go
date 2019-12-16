@@ -21,7 +21,7 @@ import (
 var (
 	sigc            chan os.Signal
 	exitHooks       []func()
-	exitCode        int = 0
+	exitCode        int
 	log             zerolog.Logger
 	logOutput       io.Writer
 	whitespaceSplit *regexp.Regexp = regexp.MustCompile(`\s+`)
