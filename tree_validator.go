@@ -61,7 +61,7 @@ func (tv TreeValidator) hasOrphans() (bool, error) {
 }
 
 func (tv TreeValidator) validate(node Node, parents []Node) error {
-	log_ := tv.Log().With().Int("parents", len(parents)).Bytes("key", node.Key()).Logger()
+	logs := tv.Log().With().Int("parents", len(parents)).Bytes("key", node.Key()).Logger()
 
 	np := tv.tr.NodePool()
 
@@ -75,7 +75,7 @@ func (tv TreeValidator) validate(node Node, parents []Node) error {
 	}
 
 	if err := IsValidNode(node, left, right); err != nil {
-		log_.Error().Err(err).Msg("invalid node found")
+		logs.Error().Err(err).Msg("invalid node found")
 		return err
 	}
 
@@ -90,7 +90,7 @@ func (tv TreeValidator) validate(node Node, parents []Node) error {
 		}
 	}
 
-	log_.Debug().Msg("validated")
+	logs.Debug().Msg("validated")
 
 	return nil
 }

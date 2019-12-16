@@ -65,10 +65,10 @@ func (tr *Tree) getLeaf(node Node, isLeft bool) (Node, error) {
 // NodePool.Get() the only organized(not orphan) node will be returned.  For
 // performance, NodePool.Get() will be better.
 func (tr *Tree) Get(key []byte) (Node, error) {
-	log_ := tr.Log().With().Bytes("key", key).Logger()
+	logs := tr.Log().With().Bytes("key", key).Logger()
 
 	if tr.root == nil {
-		log_.Debug().Msg("empty tree")
+		logs.Debug().Msg("empty tree")
 		return nil, nil
 	}
 
@@ -79,7 +79,7 @@ func (tr *Tree) Get(key []byte) (Node, error) {
 	for {
 		c := CompareKey(key, parent.Key())
 		if c == 0 {
-			log_.Debug().Int("depth", depth).Msg("found node by key")
+			logs.Debug().Int("depth", depth).Msg("found node by key")
 			return parent, nil
 		}
 
@@ -98,10 +98,10 @@ func (tr *Tree) Get(key []byte) (Node, error) {
 
 // GetWithParents returns node with it's parents node.
 func (tr *Tree) GetWithParents(key []byte) (Node, []Node, error) {
-	log_ := tr.Log().With().Bytes("key", key).Logger()
+	logs := tr.Log().With().Bytes("key", key).Logger()
 
 	if tr.root == nil {
-		log_.Debug().Msg("empty tree")
+		logs.Debug().Msg("empty tree")
 		return nil, nil, nil
 	}
 
@@ -113,7 +113,7 @@ func (tr *Tree) GetWithParents(key []byte) (Node, []Node, error) {
 		c := CompareKey(key, parent.Key())
 
 		if c == 0 {
-			log_.Debug().Int("depth", depth).Msg("found node by key")
+			logs.Debug().Int("depth", depth).Msg("found node by key")
 			return parent, parents, nil
 		}
 		parents = append(parents, parent)

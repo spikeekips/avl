@@ -47,26 +47,26 @@ func (tg *TreeGenerator) Tree() (*Tree, error) {
 
 // Add tries to add MutableNode into Tree.
 func (tg *TreeGenerator) Add(node MutableNode) ([]MutableNode /* parents node */, error) {
-	log_ := tg.Log().With().Bytes("key", node.Key()).Logger()
+	logs := tg.Log().With().Bytes("key", node.Key()).Logger()
 
 	_ = node.SetHeight(0)
 	_ = node.SetLeft(nil)
 	_ = node.SetRight(nil)
 
 	if err := IsValidNode(node, nil, nil); err != nil {
-		log_.Error().Err(err).Msg("invalid node found")
+		logs.Error().Err(err).Msg("invalid node found")
 		return nil, err
 	}
 
 	if tg.root == nil {
-		log_.Debug().Msg("root is empty; new node will be root")
+		logs.Debug().Msg("root is empty; new node will be root")
 		tg.root = node
 
 		tg.nodes[string(node.Key())] = node
 
 		return nil, nil
 	} else if EqualKey(tg.root.Key(), node.Key()) {
-		log_.Debug().Msg("same with root; root overrided")
+		logs.Debug().Msg("same with root; root overrided")
 
 		if err := tg.root.Merge(node); err != nil {
 			return nil, err
@@ -88,7 +88,7 @@ func (tg *TreeGenerator) Add(node MutableNode) ([]MutableNode /* parents node */
 }
 
 func (tg *TreeGenerator) add(node MutableNode) ([]MutableNode /* parents node */, error) {
-	log_ := tg.Log().With().Bytes("key", node.Key()).Logger()
+	logs := tg.Log().With().Bytes("key", node.Key()).Logger()
 
 	var parents []MutableNode
 	var parent MutableNode = tg.root
@@ -115,10 +115,10 @@ func (tg *TreeGenerator) add(node MutableNode) ([]MutableNode /* parents node */
 		parent = newParent
 	}
 
-	log_.Debug().Int("parents", len(parents)).Msg("found parents")
+	logs.Debug().Int("parents", len(parents)).Msg("found parents")
 
 	if len(parents) < 2 {
-		log_.Debug().Msg("not enough parents for rotation; done")
+		logs.Debug().Msg("not enough parents for rotation; done")
 		return parents, nil
 	}
 
@@ -211,17 +211,17 @@ func (tg *TreeGenerator) findNode(node, parent MutableNode) (
 	int, /* bytes.Compare */
 	error,
 ) {
-	log_ := tg.Log().With().Bytes("key", node.Key()).Logger()
+	logs := tg.Log().With().Bytes("key", node.Key()).Logger()
 
 	c := CompareKey(node.Key(), parent.Key())
 	if c == 0 {
-		log_.Debug().Bytes("parent_key", parent.Key()).Msg("node has same key with parent")
+		logs.Debug().Bytes("parent_key", parent.Key()).Msg("node has same key with parent")
 		return nil, c, nil
 	}
 
 	if c < 0 { // left
 		if parent.Left() != nil {
-			log_.Debug().Bytes("parent_key", parent.Key()).Msg("next left parent")
+			logs.Debug().Bytes("parent_key", parent.Key()).Msg("next left parent")
 
 			return tg.getLeaf(parent, true), c, nil
 		}
@@ -233,13 +233,13 @@ func (tg *TreeGenerator) findNode(node, parent MutableNode) (
 			return nil, c, err
 		}
 
-		log_.Debug().Bytes("parent_key", parent.Key()).Msg("node set at left")
+		logs.Debug().Bytes("parent_key", parent.Key()).Msg("node set at left")
 		return nil, c, nil
 	}
 
 	// right
 	if parent.Right() != nil {
-		log_.Debug().Bytes("parent_key", parent.Key()).Msg("next right parent")
+		logs.Debug().Bytes("parent_key", parent.Key()).Msg("next right parent")
 
 		return tg.getLeaf(parent, false), c, nil
 	}
@@ -250,7 +250,7 @@ func (tg *TreeGenerator) findNode(node, parent MutableNode) (
 	if _, err := tg.resetNodeHeight(parent, false); err != nil {
 		return nil, c, err
 	}
-	log_.Debug().Bytes("parent_key", parent.Key()).Msg("node set at right")
+	logs.Debug().Bytes("parent_key", parent.Key()).Msg("node set at right")
 
 	return nil, c, nil
 }
@@ -268,18 +268,18 @@ func (tg *TreeGenerator) checkSingleViolation(p1, p2 MutableNode) bool {
 }
 
 func (tg *TreeGenerator) singleRotation(head, p2, p1, node MutableNode) error {
-	log_ := tg.Log().With().
+	logs := tg.Log().With().
 		Bytes("key", node.Key()).
 		Logger()
 
-	if log_.GetLevel() == zerolog.DebugLevel {
-		var head_key []byte
+	if logs.GetLevel() == zerolog.DebugLevel {
+		var headKey []byte
 		if head != nil {
-			head_key = head.Key()
+			headKey = head.Key()
 		}
 
-		log_.Debug().
-			Bytes("head_key", head_key).
+		logs.Debug().
+			Bytes("head_key", headKey).
 			Bytes("p2_key", p2.Key()).
 			Msg("found single rotation")
 	}
@@ -335,25 +335,25 @@ func (tg *TreeGenerator) singleRotation(head, p2, p1, node MutableNode) error {
 }
 
 func (tg *TreeGenerator) leftLeftRotation(head, violated, node MutableNode, isLeft bool) error {
-	log_ := tg.Log().With().
+	logs := tg.Log().With().
 		Bytes("key", node.Key()).
 		Logger()
 
-	if log_.GetLevel() == zerolog.DebugLevel {
-		var head_key []byte
+	if logs.GetLevel() == zerolog.DebugLevel {
+		var headKey []byte
 		if head != nil {
-			head_key = head.Key()
+			headKey = head.Key()
 		}
 
-		log__ := log_.With().
-			Bytes("head_key", head_key).
+		logss := logs.With().
+			Bytes("head_key", headKey).
 			Bytes("violated_key", violated.Key()).
 			Logger()
 
 		if isLeft {
-			log__.Debug().Msg("found left-left rotation")
+			logss.Debug().Msg("found left-left rotation")
 		} else {
-			log__.Debug().Msg("found right-right rotation")
+			logss.Debug().Msg("found right-right rotation")
 		}
 	}
 
@@ -394,24 +394,24 @@ func (tg *TreeGenerator) leftLeftRotation(head, violated, node MutableNode, isLe
 }
 
 func (tg *TreeGenerator) curvedRotation(head, violated, node MutableNode, isLeft bool) error {
-	log_ := tg.Log().With().
+	logs := tg.Log().With().
 		Bytes("key", node.Key()).
 		Logger()
 
-	if log_.GetLevel() == zerolog.DebugLevel {
-		var head_key []byte
+	if logs.GetLevel() == zerolog.DebugLevel {
+		var headKey []byte
 		if head != nil {
-			head_key = head.Key()
+			headKey = head.Key()
 		}
 
-		log__ := log_.With().
-			Bytes("head_key", head_key).
+		logss := logs.With().
+			Bytes("head_key", headKey).
 			Bytes("violated_key", violated.Key()).
 			Logger()
 		if isLeft {
-			log__.Debug().Msg("found left-right rotation")
+			logss.Debug().Msg("found left-right rotation")
 		} else {
-			log__.Debug().Msg("found right-left rotation")
+			logss.Debug().Msg("found right-left rotation")
 		}
 	}
 
@@ -493,7 +493,7 @@ func (tg *TreeGenerator) setLeavesfOfCurvedRotation(p1, p2, p3, leaf0, leaf1 Mut
 func (tg *TreeGenerator) resetParentsHeight(node MutableNode, parents []MutableNode) (
 	MutableNode, MutableNode, bool, error,
 ) {
-	log_ := tg.Log().With().Bytes("key", node.Key()).Logger()
+	logs := tg.Log().With().Bytes("key", node.Key()).Logger()
 
 	var head, violated MutableNode
 	var violatedLeft bool
@@ -505,26 +505,26 @@ func (tg *TreeGenerator) resetParentsHeight(node MutableNode, parents []MutableN
 			violated = p
 			violatedLeft = isLeft
 
-			var head_key []byte
+			var headKey []byte
 			if i > 0 {
 				head = parents[i-1]
-				head_key = head.Key()
+				headKey = head.Key()
 			}
 
-			log_.Debug().
-				Bytes("head_key", head_key).
+			logs.Debug().
+				Bytes("head_key", headKey).
 				Bytes("violated_key", violated.Key()).
 				Msg("violated found")
 
 			break
 		}
 
-		if log_.GetLevel() == zerolog.DebugLevel {
-			after_height, _ := tg.resetNodeHeight(p, true)
-			log_.Debug().
+		if logs.GetLevel() == zerolog.DebugLevel {
+			afterHeight, _ := tg.resetNodeHeight(p, true)
+			logs.Debug().
 				Bytes("parent_key", p.Key()).
 				Int16("before_height", p.Height()).
-				Int16("after_height", after_height).
+				Int16("after_height", afterHeight).
 				Msg("reset height of parent")
 		}
 		if _, err := tg.resetNodeHeight(p, false); err != nil {
