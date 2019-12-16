@@ -34,10 +34,15 @@ func (t *testTree) TestHashNodes() {
 	tr, err := tg.Tree()
 	t.NoError(err)
 
-	tr.Traverse(func(node avl.Node) (bool, error) {
-		t.Nil(node.(*ExampleHashableMutableNode).hash)
+	_ = tr.Traverse(func(node avl.Node) (bool, error) {
+		t.Nil(node.(*ExampleHashableMutableNode).Hash())
 		return true, nil
 	})
+
+	prover := ExampleProver{}
+
+	err = SetTreeNodeHash(tr.Root().(HashableMutableNode), prover.GenerateNodeHash)
+	t.NoError(err)
 
 	rootHash := tg.Root().(HashableNode).Hash()
 	t.NotNil(rootHash)
@@ -45,7 +50,7 @@ func (t *testTree) TestHashNodes() {
 	t.Equal(nodes[3].Hash(), rootHash)
 
 	// hash was generated
-	tr.Traverse(func(node avl.Node) (bool, error) {
+	_ = tr.Traverse(func(node avl.Node) (bool, error) {
 		t.NotNil(node.(*ExampleHashableMutableNode).hash)
 		return true, nil
 	})
@@ -66,52 +71,73 @@ func (t *testTree) TestHashNodeProof() {
 
 	tr, _ := tg.Tree()
 
+	var zero HashableNode
+	var parents []HashableNode
 	{
 		// find parents of 0 height node, 14
 		zeroKey := nodes[14].Key()
-		var zero avl.Node
-		var parents []HashableNode
-		tr.Traverse(func(node avl.Node) (bool, error) {
+		var ps []avl.Node
+		_ = tr.Traverse(func(node avl.Node) (bool, error) {
 			if zero != nil {
 				return false, nil
 			}
 
 			if avl.EqualKey(zeroKey, node.Key()) {
-				zero = node
+				zero = node.(HashableNode)
 				return false, nil
 			}
 
 			var p avl.Node
-			if len(parents) < 1 {
-				parents = append(parents, node.(HashableNode))
+			if len(ps) < 1 {
+				ps = append(ps, node.(HashableNode))
 				return true, nil
 			}
 
-			p = parents[len(parents)-1]
+			p = ps[len(ps)-1]
 
 			isLeft := avl.CompareKey(zeroKey, p.Key()) < 0
 			if isLeft == (avl.CompareKey(p.Key(), node.Key()) < 0) {
 				return false, nil
 			}
 
-			parents = append(parents, node.(HashableNode))
+			ps = append(ps, node.(HashableNode))
 
 			return true, nil
 		})
 
-		{ // test with *Tree.GetWithParents()
-			_, parents0, _ := tr.GetWithParents(zero.Key())
-			t.Equal(len(parents), len(parents0))
-			for i, p := range parents {
-				t.Equal(p.Key(), parents0[i].Key())
-			}
+		// test with *Tree.GetWithParents()
+		_, pst, _ := tr.GetWithParents(zero.Key())
+		t.Equal(len(ps), len(pst))
+		for i, p := range ps {
+			t.Equal(p.Key(), pst[i].Key())
+
+			parents = append(parents, p.(HashableNode))
 		}
 	}
 
 	prover := ExampleProver{}
 
-	zeroKey := nodes[14].Key()
-	pr, err := prover.Proof(tr, zeroKey)
+	// all nodes must has nil hash
+	_ = tr.Traverse(func(node avl.Node) (bool, error) {
+		t.Nil(node.(HashableNode).Hash())
+
+		return true, nil
+	})
+
+	err := SetTreeNodeHash(
+		tr.Root().(HashableMutableNode),
+		prover.GenerateNodeHash,
+	)
+	t.NoError(err)
+
+	// check hash is empty or not
+	_ = tr.Traverse(func(node avl.Node) (bool, error) {
+		t.NotNil(node.(HashableNode).Hash())
+
+		return true, nil
+	})
+
+	pr, err := prover.Proof(zero, parents)
 	t.NoError(err)
 
 	{ // prove proof

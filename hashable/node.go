@@ -19,4 +19,6 @@ type HashableNode interface {
 type HashableMutableNode interface {
 	avl.MutableNode
 	baseHashableNode
+	SetHash([]byte) error
+	ResetHash()
 }

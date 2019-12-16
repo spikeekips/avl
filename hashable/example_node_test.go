@@ -111,13 +111,16 @@ func (eh *ExampleHashableMutableNode) Merge(node avl.MutableNode) error {
 }
 
 func (eh *ExampleHashableMutableNode) Hash() []byte {
-	if eh.hash != nil {
-		return eh.hash
-	}
-
-	eh.hash = ExampleProver{}.GenerateNodeHash(eh)
-
 	return eh.hash
+}
+
+func (eh *ExampleHashableMutableNode) SetHash(h []byte) error {
+	eh.hash = h
+	return nil
+}
+
+func (eh *ExampleHashableMutableNode) ResetHash() {
+	eh.hash = nil
 }
 
 func (eh *ExampleHashableMutableNode) LeftHash() []byte {
@@ -138,50 +141,6 @@ func (eh *ExampleHashableMutableNode) RightHash() []byte {
 
 func (eh *ExampleHashableMutableNode) ValueHash() []byte {
 	return int64ToBytes(int64(eh.value))
-}
-
-type ExampleHashableNode struct {
-	key       []byte
-	height    int16
-	leftKey   []byte
-	rightKey  []byte
-	value     int
-	hash      []byte
-	leftHash  []byte
-	rightHash []byte
-	valueHash []byte
-}
-
-func (eh ExampleHashableNode) Key() []byte {
-	return eh.key
-}
-
-func (eh ExampleHashableNode) Height() int16 {
-	return eh.height
-}
-
-func (eh ExampleHashableNode) LeftKey() []byte {
-	return eh.leftKey
-}
-
-func (eh ExampleHashableNode) RightKey() []byte {
-	return eh.rightKey
-}
-
-func (eh ExampleHashableNode) Hash() []byte {
-	return eh.hash
-}
-
-func (eh ExampleHashableNode) LeftHash() []byte {
-	return eh.leftHash
-}
-
-func (eh ExampleHashableNode) RightHash() []byte {
-	return eh.rightHash
-}
-
-func (eh ExampleHashableNode) ValueHash() []byte {
-	return eh.valueHash
 }
 
 func int64ToBytes(i int64) []byte {

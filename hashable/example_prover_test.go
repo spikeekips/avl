@@ -4,14 +4,12 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"sort"
-
-	"github.com/spikeekips/avl"
 )
 
 type ExampleProver struct {
 }
 
-func (ep ExampleProver) GenerateNodeHash(node HashableNode) []byte {
+func (ep ExampleProver) GenerateNodeHash(node HashableNode) ([]byte, error) {
 	return ep.generateNodeHash(
 		node.Key(),
 		node.Height(),
@@ -23,9 +21,9 @@ func (ep ExampleProver) GenerateNodeHash(node HashableNode) []byte {
 
 func (ep ExampleProver) generateNodeHash(
 	key []byte, height int16, valueHash, leftHash, rightHash []byte,
-) []byte {
+) ([]byte, error) {
 	h := sha256.New()
-	h.Write(key)
+	_, _ = h.Write(key)
 	_, _ = h.Write(int16ToBytes(height))
 	if valueHash != nil {
 		_, _ = h.Write(valueHash)
@@ -37,15 +35,10 @@ func (ep ExampleProver) generateNodeHash(
 		_, _ = h.Write(rightHash)
 	}
 
-	return h.Sum(nil)
+	return h.Sum(nil), nil
 }
 
-func (ep ExampleProver) Proof(tr *avl.Tree, key []byte) (Proof, error) {
-	node, parents, err := tr.GetWithParents(key)
-	if err != nil {
-		return nil, err
-	}
-
+func (ep ExampleProver) Proof(node HashableNode, parents []HashableNode) (Proof, error) {
 	// NOTE sort by height; lower height will be first item
 	sort.Slice(parents, func(i, j int) bool { return parents[i].Height() < parents[j].Height() })
 
@@ -77,13 +70,17 @@ func (ep ExampleProver) Proof(tr *avl.Tree, key []byte) (Proof, error) {
 }
 
 func (ep ExampleProver) proveProofNode(pr ExampleParentProof) error {
-	nodeHash := ep.generateNodeHash(
+	nodeHash, err := ep.generateNodeHash(
 		pr.key,
 		pr.height,
 		pr.valueHash,
 		pr.leftHash,
 		pr.rightHash,
 	)
+	if err != nil {
+		return err
+	}
+
 	if !bytes.Equal(pr.hash, nodeHash) {
 		return InvalidProofError.Wrapf(
 			"node hash not match: proof.hash=%v != generated=%v",
