@@ -9,12 +9,14 @@ var (
 	FailedToAddNodeInTreeError = NewWrapError("failed to add node to TreeGenerator")
 )
 
+// TreeGenerator will generate new AVL Tree.
 type TreeGenerator struct {
 	*Logger
 	root  MutableNode
 	nodes map[string]MutableNode
 }
 
+// NewTreeGenerator returns new TreeGenerator.
 func NewTreeGenerator() *TreeGenerator {
 	return &TreeGenerator{
 		Logger: NewLogger(func(c zerolog.Context) zerolog.Context {
@@ -24,14 +26,17 @@ func NewTreeGenerator() *TreeGenerator {
 	}
 }
 
+// Root returns root node of tree.
 func (tg *TreeGenerator) Root() MutableNode {
 	return tg.root
 }
 
+// Nodes returns the map of added nodes.
 func (tg *TreeGenerator) Nodes() map[string]MutableNode {
 	return tg.nodes
 }
 
+// Tree returns new Tree with added ndoes.
 func (tg *TreeGenerator) Tree() (*Tree, error) {
 	if tg.root == nil {
 		return nil, xerrors.Errorf("empty tree")
@@ -40,6 +45,7 @@ func (tg *TreeGenerator) Tree() (*Tree, error) {
 	return NewTree(tg.root.Key(), NewMapMutableNodePool(tg.nodes))
 }
 
+// Add tries to add MutableNode into Tree.
 func (tg *TreeGenerator) Add(node MutableNode) ([]MutableNode /* parents node */, error) {
 	log_ := tg.Log().With().Bytes("key", node.Key()).Logger()
 

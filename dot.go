@@ -84,6 +84,10 @@ func printDotGraphNode(w io.Writer, tr *Tree, node Node) {
 	}
 }
 
+// PrintDotGraph will print dot graph source of Tree. With the printed output,
+// the dot graph image can be easily made:
+// 	$ cat <dot graph source> | dot -Tpng -o/tmp/d.png
+// `dot` is the utility of graphviz.
 func PrintDotGraph(tr *Tree, w io.Writer) {
 	if w == nil {
 		w = os.Stdout

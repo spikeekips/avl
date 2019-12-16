@@ -8,6 +8,8 @@ var (
 	InvalidNodeError = NewWrapError("invalid node")
 )
 
+// Node defines the basic node. By comparing with MutableNode, Node stands for
+// immutable node.
 type Node interface {
 	Key() []byte
 	Height() int16
@@ -15,6 +17,7 @@ type Node interface {
 	RightKey() []byte
 }
 
+// MutableNode is, the name said, is mutable node.Mainly it is used for TreeGenerator.
 type MutableNode interface {
 	Node
 	SetHeight(int16) error
@@ -25,14 +28,17 @@ type MutableNode interface {
 	Merge(source MutableNode) error
 }
 
+// EqualKey checks node keys are same. it acts like bytes.Equal()
 func EqualKey(a, b []byte) bool {
 	return bytes.Equal(a, b)
 }
 
+// CompareKey compares node keys. it acts like bytes.Compare()
 func CompareKey(a, b []byte) int {
 	return bytes.Compare(a, b)
 }
 
+// IsValidNode checks node is valid and well defined.
 func IsValidNode(node, left, right Node) error {
 	// check empty key
 	if node.Key() == nil || len(node.Key()) < 1 {
@@ -81,7 +87,12 @@ func IsValidNode(node, left, right Node) error {
 	return nil
 }
 
-func isSiblingNodesViolated(a, b Node) (bool /* left(true), right(false) */, bool /* violated */) {
+// isSiblingNodesViolated checks the AVL violation of node. It checks the height
+// of leaves and it's own height.
+func isSiblingNodesViolated(a, b Node) (
+	bool, /* left(true), right(false) */
+	bool, /* violated */
+) {
 	if a == nil && b == nil {
 		return false, false
 	} else if a == nil || b == nil {

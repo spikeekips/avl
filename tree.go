@@ -8,8 +8,9 @@ var (
 	NodeNotFoundInPoolError = NewWrapError("node not found in pool")
 )
 
-type NodeTraverseFunc func(Node) (bool, error)
+type NodeTraverseFunc func(Node) (keep bool, err error)
 
+// Tree is AVL tree. Mainly Tree is used for loading the existing nodes.
 type Tree struct {
 	*Logger
 	nodePool NodePool
@@ -41,6 +42,7 @@ func (tr *Tree) NodePool() NodePool {
 	return tr.nodePool
 }
 
+// Root returns root node.
 func (tr *Tree) Root() Node {
 	return tr.root
 }
@@ -59,6 +61,9 @@ func (tr *Tree) getLeaf(node Node, isLeft bool) (Node, error) {
 	return tr.nodePool.Get(key)
 }
 
+// Get finds and returns node by key. It traverse the entire tree.  Unlike
+// NodePool.Get() the only organized(not orphan) node will be returned.  For
+// performance, NodePool.Get() will be better.
 func (tr *Tree) Get(key []byte) (Node, error) {
 	log_ := tr.Log().With().Bytes("key", key).Logger()
 
@@ -91,6 +96,7 @@ func (tr *Tree) Get(key []byte) (Node, error) {
 	return nil, nil
 }
 
+// GetWithParents returns node with it's parents node.
 func (tr *Tree) GetWithParents(key []byte) (Node, []Node, error) {
 	log_ := tr.Log().With().Bytes("key", key).Logger()
 
@@ -125,6 +131,8 @@ func (tr *Tree) GetWithParents(key []byte) (Node, []Node, error) {
 	return nil, nil, nil
 }
 
+// Traverse traverses the entire tree. The error of NodeTraverseFunc mainly
+// error is from the external storage or other system.
 func (tr *Tree) Traverse(f NodeTraverseFunc) error {
 	if tr.root == nil {
 		return nil
@@ -172,6 +180,7 @@ func (tr *Tree) traverse(node Node, f NodeTraverseFunc) (bool, error) {
 	return true, nil
 }
 
+// IsValid checks whether Tree is valid or not.
 func (tr *Tree) IsValid() error {
 	return NewTreeValidator(tr).IsValid()
 }

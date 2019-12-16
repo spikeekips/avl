@@ -6,11 +6,13 @@ var (
 	InvalidTreeError = NewWrapError("invalid tree")
 )
 
+// TreeValidator will validate Tree is formed properly.
 type TreeValidator struct {
 	*Logger
 	tr *Tree
 }
 
+// NewTreeValidator returns new TreeValidator.
 func NewTreeValidator(tr *Tree) TreeValidator {
 	return TreeValidator{
 		Logger: NewLogger(func(c zerolog.Context) zerolog.Context {
@@ -20,6 +22,7 @@ func NewTreeValidator(tr *Tree) TreeValidator {
 	}
 }
 
+// IsValid checks whether tree is valid or not.
 func (tv TreeValidator) IsValid() error {
 	if tv.tr.Root() == nil {
 		return nil

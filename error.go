@@ -6,6 +6,7 @@ import (
 	"golang.org/x/xerrors"
 )
 
+// WrapError is simple wrapper for xerror.Is and xerror.As.
 type WrapError struct {
 	S     string
 	Err   error
@@ -16,6 +17,7 @@ func NewWrapError(s string, a ...interface{}) WrapError {
 	return WrapError{S: fmt.Sprintf(s, a...)}
 }
 
+// Wrap put error inside WrapError.
 func (we WrapError) Wrap(err error) error {
 	return WrapError{
 		S:     we.S,
@@ -24,6 +26,7 @@ func (we WrapError) Wrap(err error) error {
 	}
 }
 
+// Wrapf acts like `fmt.Errorf()`.
 func (we WrapError) Wrapf(s string, a ...interface{}) error {
 	return WrapError{
 		S:     we.S,
@@ -32,6 +35,7 @@ func (we WrapError) Wrapf(s string, a ...interface{}) error {
 	}
 }
 
+// Is is for `xerrors.Is()`.
 func (we WrapError) Is(err error) bool {
 	if err == nil {
 		return false

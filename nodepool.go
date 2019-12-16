@@ -6,12 +6,22 @@ import (
 	"golang.org/x/xerrors"
 )
 
+// NodePool is the container of node in Tree.
 type NodePool interface {
+	// Get returns node by key. The returned error is for the external storage
+	// error. When node is not found, Get() will return (nil, nil).
 	Get(key []byte) (Node, error)
+
+	// Set inserts node. Like Get, the returned error is for the external
+	// storage error.
 	Set(Node) error
+
+	// Traverse traverses all the nodes in NodePool. NodeTraverseFunc returns 2
+	// result, If keep is false or error occurred, traversing will be stopped.
 	Traverse(NodeTraverseFunc) error
 }
 
+// SyncMapNodePool uses sync.Map.
 type SyncMapNodePool struct {
 	m *sync.Map
 }
@@ -59,6 +69,7 @@ func (mn *SyncMapNodePool) Traverse(f NodeTraverseFunc) error {
 	return err
 }
 
+// MapNodePool uses builtin map.
 type MapNodePool struct {
 	m map[string]Node
 }

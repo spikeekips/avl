@@ -70,8 +70,3 @@ BenchmarkTree1800-8    	      32	  33902428 ns/op
 BenchmarkTree1900-8    	      30	  36840383 ns/op
 BenchmarkTree10000-8   	       5	 235527047 ns/op
 ```
-
-## TODO
-
-* [ ] Code Documentation with examples
-* [x] Proof support for hashable node

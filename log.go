@@ -11,6 +11,7 @@ var (
 	log    zerolog.Logger = SetDefaultLog()
 )
 
+// SetDefaultLog returns the predefined(default) zerolog.Logger.
 func SetDefaultLog() zerolog.Logger {
 	if os.Getenv("AVL_DEBUG") != "1" {
 		return zerolog.Nop()
@@ -26,12 +27,19 @@ func SetDefaultLog() zerolog.Logger {
 		Level(zerolog.DebugLevel)
 }
 
+// Logger is basic log for this package.
 type Logger struct {
 	root        zerolog.Logger
 	l           *zerolog.Logger
 	contextFunc []func(zerolog.Context) zerolog.Context
 }
 
+// NewLogger returns new Logger. With argument function you can pass the context
+// to Logger. For example,
+//
+//	logger := NewLogger(func(c zerolog.Context) zerolog.Context {
+//		return c.Str("module", "avl_tree_validator")
+//	})
 func NewLogger(cf func(zerolog.Context) zerolog.Context) *Logger {
 	zl := &Logger{}
 	if cf != nil {
@@ -41,6 +49,7 @@ func NewLogger(cf func(zerolog.Context) zerolog.Context) *Logger {
 	return zl
 }
 
+// SetLogger set the new zerolog.Logger.
 func (zl *Logger) SetLogger(l zerolog.Logger) *Logger {
 	zl.root = l
 	if len(zl.contextFunc) > 0 {
@@ -53,10 +62,6 @@ func (zl *Logger) SetLogger(l zerolog.Logger) *Logger {
 	}
 
 	return zl
-}
-
-func (zl *Logger) RootLog() zerolog.Logger {
-	return zl.root
 }
 
 func (zl *Logger) Log() *zerolog.Logger {
