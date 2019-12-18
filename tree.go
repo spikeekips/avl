@@ -8,6 +8,8 @@ var (
 	NodeNotFoundInPoolError = NewWrapError("node not found in pool")
 )
 
+// NodeTraverseFunc is used for Tree.Traverse(). If keep is false, traversing
+// will be stopped and error also stops traversing.
 type NodeTraverseFunc func(Node) (keep bool, err error)
 
 // Tree is AVL tree. Mainly Tree is used for loading the existing nodes.
@@ -17,6 +19,7 @@ type Tree struct {
 	root     Node
 }
 
+// NewTree loads tree from NodePool.
 func NewTree(rootKey []byte, nodePool NodePool) (*Tree, error) {
 	if rootKey == nil {
 		return nil, NodeNotFoundInPoolError.Wrapf("empty root")
@@ -38,6 +41,7 @@ func NewTree(rootKey []byte, nodePool NodePool) (*Tree, error) {
 	}, nil
 }
 
+// NodePool returns NodePool of this tree.
 func (tr *Tree) NodePool() NodePool {
 	return tr.nodePool
 }
